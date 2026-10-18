@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Field Journal · Earthborne Rangers</title>
+  <meta name="description" content="Earthborne Rangers 角色卡、战役记录与成就徽章的非官方交互记录工具。">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <noscript>
+    <p class="noscript">这个记录工具需要启用 JavaScript 才能保存和编辑内容。</p>
+  </noscript>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="#character" aria-label="Earthborne Rangers Field Journal">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="9.5" y="9.5" width="29" height="29" rx="8" transform="rotate(45 24 24)" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M24 12.5c5.6 3.7 8.8 7.9 8.8 12.7 0 5.7-3.7 9.6-8.8 12.4-5.1-2.8-8.8-6.7-8.8-12.4 0-4.8 3.2-9 8.8-12.7Z" stroke="currentColor" stroke-width="1.25"/>
+            <path d="M24 17v18M24 23.5l4.8-3.4M24 28.5l-4.8-3.4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand__text">
+          <span class="brand__game">Earthborne Rangers</span>
+          <span class="brand__name">Field Journal <span>野外日志</span></span>
+        </span>
+      </a>
+
+      <nav class="tabs" role="tablist" aria-label="主要页面">
+        <button class="tab is-active" id="tab-character" type="button" role="tab" aria-selected="true" aria-controls="view-character" tabindex="0" data-tab="character">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.25"/><path d="M5.5 20c.6-3.8 3-6 6.5-6s5.9 2.2 6.5 6"/></svg>
+          <span><b>角色档案</b><small>Character</small></span>
+        </button>
+        <button class="tab" id="tab-campaign" type="button" role="tab" aria-selected="false" aria-controls="view-campaign" tabindex="-1" data-tab="campaign">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5 9 4l6 2.5L20 4v13.5L15 20l-6-2.5L4 20V6.5Z"/><path d="M9 4v13.5M15 6.5V20"/></svg>
+          <span><b>战役日志</b><small>Campaign</small></span>
+        </button>
+        <button class="tab" id="tab-achievements" type="button" role="tab" aria-selected="false" aria-controls="view-achievements" tabindex="-1" data-tab="achievements">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5.5"/><path d="m8.3 13.5-1.3 7 5-2.5 5 2.5-1.3-7M12 6.5l.8 1.7 1.9.2-1.4 1.3.4 1.8-1.7-.9-1.7.9.4-1.8-1.4-1.3 1.9-.2L12 6.5Z"/></svg>
+          <span><b>成就徽章</b><small>Achievements</small></span>
+        </button>
+        <button class="tab" id="tab-soundtrack" type="button" role="tab" aria-selected="false" aria-controls="view-soundtrack" tabindex="-1" data-tab="soundtrack">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
+          <span><b>原声音乐</b><small>Soundtrack</small></span>
+        </button>
+      </nav>
+
+      <div class="topbar__tools">
+        <span class="save-state" id="save-state" data-state="saved" title="进度自动保存在当前浏览器">
+          <span class="save-state__dot" aria-hidden="true"></span>
+          <span id="save-text">已保存</span>
+        </span>
+        <div class="menu-wrap">
+          <button class="icon-button" id="menu-toggle" type="button" aria-label="更多操作" aria-haspopup="true" aria-expanded="false" aria-controls="menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
+          </button>
+          <div class="menu" id="menu" role="menu" hidden>
+            <button type="button" role="menuitem" data-action="print">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H4V9h16v8h-3M7 14h10v6H7v-6Z"/></svg>
+              打印当前页
+            </button>
+            <button type="button" role="menuitem" data-action="export">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M8 11l4 4 4-4M5 19h14"/></svg>
+              导出备份
+            </button>
+            <button type="button" role="menuitem" data-action="import">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M5 19h14"/></svg>
+              导入备份
+            </button>
+            <div class="menu__rule" role="separator"></div>
+            <button type="button" role="menuitem" class="menu__danger" data-action="reset">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>
+              重置全部记录
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ============ CHARACTER ============ -->
+    <section class="view" id="view-character" data-view="character" role="tabpanel" aria-labelledby="tab-character">
+      <div class="page-intro page-intro--character">
+        <div class="page-intro__copy">
+          <p class="eyebrow"><span class="eyebrow__rule"></span>Lure of the Valley <span class="eyebrow__sep">·</span> Character Sheet</p>
+          <h1>Ranger Record <span class="h1-zh">角色档案</span></h1>
+          <p class="lede">你的名字、你的道路、你的牌库。点击菱形调整属性，横线处直接输入文字。</p>
+        </div>
+        <div class="intro-mark" aria-hidden="true">
+          <svg viewBox="0 0 180 180" fill="none">
+            <circle cx="90" cy="90" r="73" stroke="currentColor" stroke-width=".8" opacity=".28"/>
+            <circle cx="90" cy="90" r="55" stroke="currentColor" stroke-width=".8" opacity=".18"/>
+            <circle cx="90" cy="90" r="36" stroke="currentColor" stroke-width=".8" opacity=".12"/>
+            <path d="M90 22 99 81 158 90 99 99 90 158 81 99 22 90 81 81 90 22Z" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
+            <path d="M90 52v76M52 90h76" stroke="currentColor" stroke-width=".8" opacity=".24"/>
+            <circle cx="90" cy="90" r="4" fill="currentColor" opacity=".8"/>
+            <text x="90" y="16" text-anchor="middle">N</text>
+            <text x="90" y="172" text-anchor="middle">S</text>
+            <text x="170" y="93" text-anchor="middle">E</text>
+            <text x="10" y="93" text-anchor="middle">W</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="character-layout">
+        <div class="character-main">
+          <section class="paper-card identity-card" aria-label="游侠身份">
+            <div class="identity-head">
+              <div class="name-field">
+                <label class="field-label" for="ranger-name">Ranger Name <span>游侠姓名</span></label>
+                <input id="ranger-name" class="name-input" data-bind="character.name" placeholder="写下你的游侠之名" autocomplete="off" spellcheck="false">
+              </div>
+              <div class="aspect-total" id="aspect-total">
+                <span class="aspect-total__label">Aspect Total</span>
+                <span class="aspect-total__value"><strong id="aspect-total-value">8</strong><em>/ 8</em></span>
+              </div>
+            </div>
+
+            <div class="aspect-row" id="aspect-row" role="group" aria-label="游侠属性"></div>
+            <p class="micro-hint">点击菱形循环 1–3，Shift 点击或右键递减。标准角色四项总和为 8。</p>
+
+            <div class="identity-fields">
+              <div class="field field--personality">
+                <label class="field-label" for="personality">Personality <span>性格</span></label>
+                <textarea id="personality" class="lined-textarea" rows="4" data-bind="character.personality" placeholder="你的游侠如何看这个世界？"></textarea>
+              </div>
+              <div class="field">
+                <label class="field-label" for="role">Role <span>定位</span></label>
+                <input id="role" class="line-input" data-bind="character.role" placeholder="例如：向导、调停者、工匠" autocomplete="off">
+              </div>
+            </div>
+          </section>
+
+          <div class="character-pair">
+            <section class="paper-card" aria-labelledby="background-title">
+              <header class="section-head section-head--compact">
+                <div>
+                  <p class="section-kicker">Deck Foundation</p>
+                  <h2 id="background-title">Background <span>背景</span></h2>
+                </div>
+                <span class="section-number" aria-hidden="true">01</span>
+              </header>
+              <div class="field field--tight">
+                <label class="field-label" for="background">Background Name <span>背景名称</span></label>
+                <input id="background" class="line-input" data-bind="character.background" placeholder="背景名称" autocomplete="off">
+              </div>
+              <div class="card-fields card-fields--boxed" id="background-cards" data-enter-group></div>
+            </section>
+
+            <section class="paper-card" aria-labelledby="specialty-title">
+              <header class="section-head section-head--compact">
+                <div>
+                  <p class="section-kicker">Deck Foundation</p>
+                  <h2 id="specialty-title">Specialty <span>专长</span></h2>
+                </div>
+                <span class="section-number" aria-hidden="true">02</span>
+              </header>
+              <div class="field field--tight">
+                <label class="field-label" for="specialty">Specialty Name <span>专长名称</span></label>
+                <input id="specialty" class="line-input" data-bind="character.specialty" placeholder="专长名称" autocomplete="off">
+              </div>
+              <div class="card-fields card-fields--boxed" id="specialty-cards" data-enter-group></div>
+            </section>
+          </div>
+
+          <section class="paper-card outside-card" aria-label="业余爱好">
+            <div class="outside-card__inner">
+              <span class="outside-card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 21c4.5-2.8 7-6.4 7-10.4A7 7 0 0 0 5 10.6c0 4 2.5 7.6 7 10.4Z"/><path d="M12 17V8M12 13l3-2M12 10 9.5 8.2"/></svg>
+              </span>
+              <div class="field field--flush">
+                <label class="field-label" for="outside-interest">Outside Interest <span>业余爱好</span></label>
+                <input id="outside-interest" class="line-input" data-bind="character.outsideInterest" placeholder="牌库里没有写下的那一部分" autocomplete="off">
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="character-side">
+          <section class="paper-card deck-card" aria-labelledby="decklist-title">
+            <header class="section-head section-head--compact">
+              <div>
+                <p class="section-kicker">Thirty Cards</p>
+                <h2 id="decklist-title">Current Decklist <span>当前牌库</span></h2>
+              </div>
+              <span class="count-chip" id="decklist-count">0 / 30</span>
+            </header>
+            <div class="decklist" id="decklist" data-enter-group></div>
+          </section>
+
+          <section class="paper-card trades-card" aria-labelledby="trades-title">
+            <header class="section-head section-head--compact">
+              <div>
+                <p class="section-kicker">One For One</p>
+                <h2 id="trades-title">Trades <span>交易</span></h2>
+              </div>
+              <span class="section-number" aria-hidden="true">03</span>
+            </header>
+            <div class="trades" id="trades" data-enter-group></div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ CAMPAIGN ============ -->
+    <section class="view" id="view-campaign" data-view="campaign" role="tabpanel" aria-labelledby="tab-campaign" hidden>
+      <div class="page-intro page-intro--campaign">
+        <div class="page-intro__copy">
+          <p class="eyebrow"><span class="eyebrow__rule"></span>Campaign Tracker <span class="eyebrow__sep">·</span> 战役记录</p>
+          <h1>Campaign Log <span class="h1-zh">战役日志</span></h1>
+          <p class="lede">划掉走过的日子，写下任务与旅途。所有横线都可以直接输入，菱形和方格都可以点击。</p>
+          <p class="campaign-print-title" id="campaign-print-title"></p>
+          <div class="campaign-switch" role="group" aria-label="选择战役">
+            <button type="button" class="campaign-switch__button is-active" aria-pressed="true" data-campaign="valley">
+              <span>Lure of the Valley</span>
+              <small>核心游戏 · Core Game</small>
+            </button>
+            <button type="button" class="campaign-switch__button" aria-pressed="false" data-campaign="legacy">
+              <span>Legacy of the Ancestors</span>
+              <small>扩展 · Expansion</small>
+            </button>
+          </div>
+        </div>
+        <div class="intro-mark intro-mark--campaign" aria-hidden="true">
+          <svg viewBox="0 0 180 180" fill="none">
+            <path d="M18 133c22-43 36-70 73-70 26 0 34 17 55 17 9 0 15-2 21-7" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 6" opacity=".5"/>
+            <path d="M12 150c27-31 39-48 62-48 22 0 31 21 55 21 18 0 28-8 43-20" stroke="currentColor" stroke-width=".85" opacity=".24"/>
+            <path d="M20 28c28 0 36 19 58 19 23 0 33-17 56-17 12 0 21 4 29 11" stroke="currentColor" stroke-width=".85" opacity=".18"/>
+            <circle cx="91" cy="63" r="6" stroke="currentColor" stroke-width="1.2"/>
+            <circle cx="91" cy="63" r="1.8" fill="currentColor"/>
+            <path d="M91 44v-9M91 91v-9M72 63h-9M119 63h-9" stroke="currentColor" stroke-width="1" opacity=".5"/>
+            <path d="M119 99c-6 6-12 9-19 9-11 0-18-7-18-16 0-10 9-17 21-17 4 0 7 0 10 1" stroke="currentColor" stroke-width="1" opacity=".7"/>
+          </svg>
+        </div>
+      </div>
+
+      <section class="paper-card day-card" aria-labelledby="day-title">
+        <header class="section-head">
+          <div>
+            <p class="section-kicker">Thirty Days</p>
+            <h2 id="day-title">Day Track <span>日程</span></h2>
+          </div>
+          <div class="day-card__tools">
+            <div class="day-count"><strong id="day-count">0</strong><span>/ 30 天</span></div>
+            <button class="text-button" type="button" data-action="complete-next">标记下一日</button>
+          </div>
+        </header>
+        <div class="progress-line" aria-hidden="true"><span id="day-progress-bar"></span></div>
+        <div class="day-scroll">
+          <div class="day-track">
+            <div class="day-strip" id="day-strip"></div>
+            <div class="day-groups" id="day-groups"></div>
+            <div class="day-secondary" id="day-secondary" hidden></div>
+          </div>
+        </div>
+        <p class="day-scroll-hint" aria-hidden="true">← 左右滑动查看全部 30 天 →</p>
+        <div class="day-legend">
+          <span><i class="weather-dot weather-dot--sun"></i>A Perfect Day <em>晴日</em></span>
+          <span><i class="weather-dot weather-dot--rain"></i>Downpour <em>暴雨</em></span>
+          <span><i class="weather-dot weather-dot--wind"></i>Howling Wind <em>狂风</em></span>
+          <span class="day-legend__dual" id="day-legend-dual" hidden><i class="weather-dot weather-dot--arcology"></i>上排：Valley 推荐天气 · 下排灰字：Arcology 推荐天气</span>
+          <span class="day-legend__hint">点击圆圈标记完成 · 下一次未完成日会高亮</span>
+        </div>
+      </section>
+
+      <div class="campaign-layout">
+        <aside class="campaign-rail">
+          <section class="paper-card rangers-card" aria-labelledby="rangers-title">
+            <header class="section-head section-head--compact">
+              <div>
+                <p class="section-kicker">The Party</p>
+                <h2 id="rangers-title">Rangers <span>游侠小队</span></h2>
+              </div>
+              <span class="section-number" aria-hidden="true">01</span>
+            </header>
+            <div class="rangers-list" id="campaign-rangers" data-enter-group></div>
+          </section>
+
+          <section class="paper-card position-card" aria-labelledby="position-title">
+            <header class="section-head section-head--compact">
+              <div>
+                <p class="section-kicker">Where The Trail Leads</p>
+                <h2 id="position-title">Current Position <span>当前位置</span></h2>
+              </div>
+            </header>
+            <div class="position-field">
+              <span class="position-field__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 21c4.5-2.8 7-6.4 7-10.4A7 7 0 0 0 5 10.6c0 4 2.5 7.6 7 10.4Z"/><circle cx="12" cy="10.5" r="2.2"/></svg>
+              </span>
+              <div class="field field--flush">
+                <label class="field-label" for="campaign-location">Location <span>地点</span></label>
+                <input id="campaign-location" class="line-input" data-campaign-bind="location" placeholder="当前所在位置" autocomplete="off">
+              </div>
+            </div>
+            <div class="position-field">
+              <span class="position-field__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M8.5 4.5c-2 0-3.5 1.5-3.5 3.5 0 3 3.5 4 3.5 7 0 2-1 3-2 4M15.5 4.5c2 0 3.5 1.5 3.5 3.5 0 3-3.5 4-3.5 7 0 2 1 3 2 4"/></svg>
+              </span>
+              <div class="field field--flush">
+                <label class="field-label" for="campaign-terrain">Path Terrain <span>路径地形</span></label>
+                <input id="campaign-terrain" class="line-input" data-campaign-bind="terrain" placeholder="当前路径地形" autocomplete="off">
+              </div>
+            </div>
+            <p class="terrain-hint">一天结束时，记下所在位置与当前路径地形。</p>
+          </section>
+        </aside>
+
+        <section class="paper-card missions-card" aria-labelledby="missions-title">
+          <header class="section-head">
+            <div>
+              <p class="section-kicker">Open Threads</p>
+              <h2 id="missions-title">Missions <span>任务</span></h2>
+            </div>
+            <div class="mission-stats">
+              <span><strong id="missions-active">0</strong> active</span>
+              <span><strong id="missions-done">0</strong> complete</span>
+            </div>
+          </header>
+          <p class="mission-help"><span>方框</span>填写任务开始的天数 · <span>横线</span>写任务名 · 点击<span>菱形</span>记录进度 · 点击<span>对勾</span>标记完成</p>
+          <div class="mission-grid" id="mission-grid"></div>
+          <div class="extra-missions" id="extra-missions-wrap" hidden>
+            <div class="extra-missions__head">
+              <h3>Additional Missions <span>追加任务</span></h3>
+              <span class="section-number" aria-hidden="true">02</span>
+            </div>
+            <div class="mission-grid" id="extra-mission-grid"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="campaign-notes">
+        <section class="paper-card notes-card" aria-labelledby="rewards-title">
+          <header class="section-head section-head--compact">
+            <div>
+              <p class="section-kicker">What The Valley Gives</p>
+              <h2 id="rewards-title">Rewards <span>奖励</span></h2>
+            </div>
+            <span class="section-number" aria-hidden="true">R</span>
+          </header>
+          <div class="note-columns" id="reward-notes"></div>
+        </section>
+        <section class="paper-card notes-card notes-card--notable" aria-labelledby="notable-title">
+          <header class="section-head section-head--compact">
+            <div>
+              <p class="section-kicker">What The Valley Remembers</p>
+              <h2 id="notable-title">Notable Events <span>重要事件</span></h2>
+            </div>
+            <span class="section-number" aria-hidden="true">N</span>
+          </header>
+          <div class="note-columns" id="notable-notes"></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ============ ACHIEVEMENTS ============ -->
+    <section class="view" id="view-achievements" data-view="achievements" role="tabpanel" aria-labelledby="tab-achievements" hidden>
+      <div class="page-intro page-intro--achievements">
+        <div class="page-intro__copy">
+          <p class="eyebrow"><span class="eyebrow__rule"></span>Achievements <span class="eyebrow__sep">·</span> 山谷的荣誉</p>
+          <h1>Field Honors <span class="h1-zh">成就徽章</span></h1>
+          <p class="lede">点击徽章标记达成。未达成的徽章会保持灰色，达成后恢复它原本的颜色。</p>
+        </div>
+        <div class="achievement-summary">
+          <div class="progress-ring" id="achievement-ring" style="--progress: 0">
+            <div class="progress-ring__inner">
+              <strong id="achievement-count">0</strong>
+              <span>/ 16</span>
+            </div>
+          </div>
+          <div class="achievement-summary__copy">
+            <span class="achievement-summary__label">Badges Earned</span>
+            <strong id="achievement-summary-text">尚未获得徽章</strong>
+            <span>在山谷里留下你的故事。</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="achievement-toolbar">
+        <div class="filter-group" role="group" aria-label="筛选成就">
+          <button type="button" class="filter-button is-active" data-filter="all" aria-pressed="true">全部 <span id="filter-count-all">16</span></button>
+          <button type="button" class="filter-button" data-filter="earned" aria-pressed="false">已达成 <span id="filter-count-earned">0</span></button>
+          <button type="button" class="filter-button" data-filter="unearned" aria-pressed="false">未达成 <span id="filter-count-unearned">16</span></button>
+        </div>
+        <p class="achievement-toolbar__hint">点击任意卡片切换状态 · 自动保存</p>
+      </div>
+
+      <div class="achievement-grid" id="achievement-grid"></div>
+      <p class="empty-state" id="achievement-empty" hidden></p>
+    </section>
+
+    <!-- ============ SOUNDTRACK ============ -->
+    <section class="view" id="view-soundtrack" data-view="soundtrack" role="tabpanel" aria-labelledby="tab-soundtrack" hidden>
+      <div class="page-intro page-intro--soundtrack">
+        <div class="page-intro__copy">
+          <p class="eyebrow"><span class="eyebrow__rule"></span>Original Soundtrack <span class="eyebrow__sep">·</span> Tom Figgins</p>
+          <h1>Songs of the Valley <span class="h1-zh">原声音乐</span></h1>
+          <p class="lede">山谷也有自己的声音。这里可以试听官方发布的 30 秒片段；完整原声是一张付费专辑。</p>
+        </div>
+        <div class="intro-mark intro-mark--soundtrack" aria-hidden="true">
+          <svg viewBox="0 0 180 180" fill="none">
+            <circle cx="90" cy="90" r="70" stroke="currentColor" stroke-width="1" opacity=".36"/>
+            <circle cx="90" cy="90" r="56" stroke="currentColor" stroke-width=".8" opacity=".23"/>
+            <circle cx="90" cy="90" r="42" stroke="currentColor" stroke-width=".8" opacity=".17"/>
+            <circle cx="90" cy="90" r="27" stroke="currentColor" stroke-width=".8" opacity=".12"/>
+            <circle cx="90" cy="90" r="10" stroke="currentColor" stroke-width="1.1" opacity=".65"/>
+            <circle cx="90" cy="90" r="2.7" fill="currentColor" opacity=".85"/>
+            <path d="M22 95c11 0 12-13 23-13s12 20 23 20 12-29 24-29 12 39 24 39 12-24 23-24 11 12 20 12" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" opacity=".72"/>
+            <path d="M25 119c17 10 42 15 65 15 27 0 49-8 66-21" stroke="currentColor" stroke-width=".85" opacity=".22"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="soundtrack-layout">
+        <section class="paper-card album-card" aria-labelledby="album-title">
+          <div class="album-art">
+            <span class="album-art__vinyl" aria-hidden="true"></span>
+            <img src="assets/soundtrack/earthborne-rangers-cover.jpg" alt="Earthborne Rangers Original Soundtrack 官方专辑封面" width="600" height="600">
+          </div>
+          <div class="album-info">
+            <p class="section-kicker">Earthborne Games · 2025</p>
+            <h2 id="album-title">Earthborne Rangers <span>Original Soundtrack</span></h2>
+            <p class="album-artist">Music by <strong>Tom Figgins</strong></p>
+            <p class="album-description">吉他、弦乐与打击乐写成的山谷声音。原声以八种路径各一组曲目展开，并由主题曲与终曲收束。</p>
+            <div class="album-meta" aria-label="专辑信息">
+              <span><strong>34</strong> tracks</span>
+              <span><strong>≈ 3</strong> hours</span>
+              <span>Stereo + Binaural</span>
+            </div>
+            <div class="album-actions">
+              <a class="button button--primary" href="https://earthbornegames.bandcamp.com/album/earthborne-rangers-original-soundtrack" target="_blank" rel="noreferrer">
+                Bandcamp 完整原声
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8"/><path d="M19 14v5H5V5h5"/></svg>
+              </a>
+              <a class="button button--quiet" href="https://music.apple.com/us/album/earthborne-rangers-official-soundtrack-preview-ep/1802670455" target="_blank" rel="noreferrer">
+                Apple Music 试听 EP
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8"/><path d="M19 14v5H5V5h5"/></svg>
+              </a>
+            </div>
+            <p class="music-note">完整 34 首为付费专辑；本页只播放 Apple Music 提供的官方 30 秒试听片段。</p>
+          </div>
+        </section>
+
+        <section class="paper-card player-card" aria-labelledby="preview-title">
+          <header class="section-head">
+            <div>
+              <p class="section-kicker">Official previews</p>
+              <h2 id="preview-title">Listen <span>官方试听</span></h2>
+            </div>
+            <span class="preview-badge">30 SEC</span>
+          </header>
+
+          <div class="now-playing" aria-live="polite">
+            <div class="now-playing__visual" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="now-playing__copy">
+              <span class="now-playing__label">Now Playing · Apple Music preview</span>
+              <h3 id="now-playing-title">Earthborne Rangers</h3>
+              <p>Tom Figgins · <span id="now-playing-length">30 秒试听</span></p>
+            </div>
+          </div>
+
+          <div class="transport">
+            <div class="transport-buttons">
+              <button class="transport-button" type="button" data-action="soundtrack-prev" aria-label="上一首试听">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6v12l-9-6 9-6Z" fill="currentColor" stroke="none"/><path d="M6 5v14"/></svg>
+              </button>
+              <button class="play-button" type="button" data-action="soundtrack-toggle" aria-label="播放试听">
+                <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5 19 12 8 18.5v-13Z" fill="currentColor" stroke="none"/></svg>
+                <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" stroke="none"/></svg>
+              </button>
+              <button class="transport-button" type="button" data-action="soundtrack-next" aria-label="下一首试听">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6v12l9-6-9-6Z" fill="currentColor" stroke="none"/><path d="M18 5v14"/></svg>
+              </button>
+            </div>
+            <div class="seek-row">
+              <span id="soundtrack-current">0:00</span>
+              <input type="range" id="soundtrack-seek" min="0" max="30" step="0.1" value="0" aria-label="试听播放进度">
+              <span id="soundtrack-total">0:30</span>
+            </div>
+          </div>
+
+          <div class="track-list" id="soundtrack-tracklist"></div>
+          <p class="sr-only" id="soundtrack-status" role="status" aria-live="polite"></p>
+
+          <div class="player-footer">
+            <span>官方 30 秒试听 · 需要联网</span>
+            <a href="https://music.apple.com/us/album/earthborne-rangers-official-soundtrack-preview-ep/1802670455" target="_blank" rel="noreferrer">在 Apple Music 打开 <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>
+      </div>
+
+      <section class="paper-card full-album-card" aria-labelledby="full-album-title">
+        <div class="full-album-copy">
+          <p class="section-kicker">The Complete Record</p>
+          <h2 id="full-album-title">34 Tracks <span>完整原声</span></h2>
+          <p>完整专辑约三小时，包含八种路径的组曲、主题曲与终曲，以及 stereo 与 binaural 两种版本。数字专辑与限量 4-EP 黑胶由 Earthborne Games 在 Bandcamp 发行。</p>
+        </div>
+        <a class="button button--primary" href="https://earthbornegames.bandcamp.com/album/earthborne-rangers-original-soundtrack" target="_blank" rel="noreferrer">
+          在 Bandcamp 获取
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8"/><path d="M19 14v5H5V5h5"/></svg>
+        </a>
+      </section>
+
+      <div class="soundtrack-links">
+        <a class="resource-card" href="https://music.apple.com/us/album/earthborne-rangers-official-soundtrack-preview-ep/1802670455" target="_blank" rel="noreferrer">
+          <span class="resource-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m10 8.5 5.5 3.5-5.5 3.5v-7Z"/></svg>
+          </span>
+          <span class="resource-card__copy"><strong>Apple Music</strong><small>官方 4 首试听 EP</small></span>
+          <span class="resource-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="resource-card" href="https://earthbornegames.bandcamp.com/" target="_blank" rel="noreferrer">
+          <span class="resource-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.2"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/></svg>
+          </span>
+          <span class="resource-card__copy"><strong>Earthborne Games · Bandcamp</strong><small>完整原声与更多游戏音乐</small></span>
+          <span class="resource-card__arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="resource-card" href="https://earthbornegames.com/episode-72-soundtrack-listening-party-ft-tom-figgins/" target="_blank" rel="noreferrer">
+          <span class="resource-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M8.5 21h7"/></svg>
+          </span>
+          <span class="resource-card__copy"><strong>Soundtrack Listening Party</strong><small>官方播客 · Episode 72</small></span>
+          <span class="resource-card__arrow" aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <p class="soundtrack-credit">Preview audio and album artwork © Earthborne Games / Tom Figgins. 试听片段由 Apple Music 提供，本页不存储音频文件。</p>
+      <audio id="soundtrack-audio" preload="none"></audio>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <span class="brand__mark brand__mark--small" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="9.5" y="9.5" width="29" height="29" rx="8" transform="rotate(45 24 24)" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M24 12.5c5.6 3.7 8.8 7.9 8.8 12.7 0 5.7-3.7 9.6-8.8 12.4-5.1-2.8-8.8-6.7-8.8-12.4 0-4.8 3.2-9 8.8-12.7Z" stroke="currentColor" stroke-width="1.25"/>
+          </svg>
+        </span>
+        <p>Unofficial field journal for Earthborne Rangers.<br><span>非官方玩家工具 · 进度只保存在你的浏览器里。</span></p>
+      </div>
+      <div class="site-footer__links">
+        <a href="https://earthbornegames.com/resources/game-achievements/" target="_blank" rel="noreferrer">官方成就页</a>
+        <a href="https://earthbornegames.com/earthborne-rangers-downloads/" target="_blank" rel="noreferrer">官方下载</a>
+        <a href="https://earthbornegames.bandcamp.com/album/earthborne-rangers-original-soundtrack" target="_blank" rel="noreferrer">官方原声</a>
+        <span>Earthborne Rangers, soundtrack &amp; badge art © Earthborne Games</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog class="dialog" id="reset-dialog" aria-labelledby="reset-title">
+    <form method="dialog">
+      <p class="eyebrow">Reset Journal</p>
+      <h2 id="reset-title">清空所有记录？</h2>
+      <p>角色档案、两套战役进度和全部成就都会被清除。这个操作无法撤销，建议先导出备份。</p>
+      <div class="dialog__actions">
+        <button class="button button--quiet" value="cancel">取消</button>
+        <button class="button button--danger" value="confirm">清空记录</button>
+      </div>
+    </form>
+  </dialog>
+
+  <input type="file" id="import-input" accept="application/json,.json" hidden>
+</body>
+</html>

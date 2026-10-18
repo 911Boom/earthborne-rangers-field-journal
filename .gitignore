@@ -1,0 +1,8 @@
+# Official reference PDFs are kept locally and are not redistributed.
+reference/
+
+# Local archives and OS/editor noise
+*.zip
+.DS_Store
+Thumbs.db
+*.log
